@@ -113,27 +113,10 @@ Siamo in una tipica località nel Far West - beh occorre usare la fantasia perch
 Nel nostro immaginario paese nel **Far West** ci sono 2 personaggi: il **minatore Bob** e sua **moglie Elsa**:
 - <img align="right" hspace="20" width="220"
 src="images/bob.png"/> Bob si sposta tra 4 luoghi: la **miniera d'oro**, la **banca** in cui deposita le pepite che trova, il **saloon** per dissetarsi e la sua **casa** per riposare. Cosa fa esattamente, dove e quando è stabilito dal suo stato corrente. Bob cambierà stato in base alle sue variabili **sete**, **fatica** e **pepite** trovate scavando nella miniera.
-	```mermaid
-	graph LR
-	   HOME((HOME))--wake up-->MINE((MINE))
-	   MINE--depot-->BANK((BANK))
-	   BANK--more gold-->MINE
-	   BANK--Thirst-->SALOON((SALOON))
-	   BANK--Tired-->HOME
-	   SALOON--more gold-->MINE
-	   SALOON--Tired-->HOME
-	```
+	![Bob FSM](graphs/bob-fsm.png)
 - <img align="right" hspace="20"
 src="images/elsa.png"/> Elsa è prevalentemente impegnata a **pulire casa**, **preparare cena** e **andare in bagno**.
-	```mermaid
-	graph LR
-	   CLEAN((CLEAN))-->BATHROOM((BATHROOM))
-	   BATHROOM((BATHROOM))-->COOK((COOK))
-	   COOK-->BATHROOM
-	   COOK-->CLEAN
-	   CLEAN-->COOK
-	   BATHROOM-->CLEAN
-	```
+	![Elsa FSM](graphs/elsa-fsm.png)
    
 Naturalmente Bob e Elsa comunicano.  Non molto in realtà. Si scambiano solo **2 tipi di messaggi**:
 - **HI_HONEY_I_M_HOME**: messaggio istantaneo usato da  Bob per informare Elsa che è tornato a casa.
@@ -273,11 +256,9 @@ Sono di 2 tipi:
 
 
 **Esempio**: nella demo quando l'umano muore (perché l'utente ha premuto il tasto :skull:, ma non preoccupatevi possiamo tranquillamente resuscitarlo!!!) il cane se è nelle vicinanze se ne accorge e va da lui a piangerlo. Per modellare questo comportamento possiamo definire *in modo informale* il BT corrispondente al task `Cry For Human Death` come segue
-```mermaid
-graph TD
-   CryForHumanDeath[Cry For Human Death]-->HumanVisible[Human Visible?]
-   CryForHumanDeath-->MournHisDeath[Mourn His Death]
-```
+
+![Leaf Task](graphs/leaf.png)
+
 Il task radice è composto da due task figlio (le foglie), il figlio di sinistra è una condizione che capisce se il padrone è visibile e il figlio di destra è un'azione che fa compiangere al cane la sua morte.
 Ogni task può avere **esito positivo o negativo**, il che a sua volta definisce se il task padre (nell'esempio il task composito `Cry For Human Death`, che come vedremo a breve è una sequenza) ha esito positivo o negativo.
 
@@ -295,25 +276,13 @@ Si può pensare ai task compositi come alla **spina dorsale del formalismo BT**.
 Una sequence è un task di diramazione che esegue a turno ciascuno dei suoi task figlio. Restituisce un codice di fallimento non appena uno dei suoi figli fallisce. Finché i suoi figli hanno successo, va avanti col successivo. Finiti i figli, restituisce successo. **Le sequenze rappresentano una successione di compiti da intraprendere**. 
 
 **Esempio 1:** L'esempio precedente, in cui il cane piange la morte del padrone, è definito in maniera più formale dal BT sottostante. Ora il nodo composito è esplicitamente dichiarato di tipo sequence.
-```mermaid
-graph TD
-   CryForHumanDeath[Cry For Human Death<br/><b>type: sequence</b>]-->HumanVisible[Human Visible?]
-   CryForHumanDeath-->MournHisDeath[Mourn His Death]
-```
+
+![Sequence Task 1](graphs/sequence-1.png)
 
 **Esempio 2:** Il cane per poter giocare col suo padrone, che lo ha chiamato fischiando, deve eseguire la sequenza di azioni rappresentata qui sotto:
-```mermaid
-graph TD
-   PlayWithHuman[Play With Human<br/>type: sequence]-->CalculatePathToHuman[Calculate Path<br>To Human]
-   PlayWithHuman-->FollowPathToHumanRunning[Follow Path<br>Running]
-   PlayWithHuman-->SpinAroundToFaceHuman[Spin Around To<br>Face Human]
-   PlayWithHuman-->GiveStickToHuman[Give Stick<br>To Human]
-   PlayWithHuman-->WaitForStickThrow[Wait For<br>Stick Throw]   
-   PlayWithHuman-->StickThrown[Stick<br/>Thrown?]   
-   PlayWithHuman-->CalculatePathToStick[Calculate Path<br>To Stick]
-   PlayWithHuman-->FollowPathToStickRunning[Follow Path<br>Running]
-   PlayWithHuman-->PickUpStick[Pick Up<br>Stick]
-```
+
+![Sequence Task 2](graphs/sequence-2.png)
+
 Se una qualunque azione fallisce (ad esempio il padrone dopo il fischio se ne va via mentre il cane lo sta raggiungendo, oppure non gli lancia il bastone entro un certo tempo), la sequenza fallisce e il gioco tra i due finisce. Se al contrario, tutti i task nella sequenza hanno esito positivo, cioè il cane riesce a raccogliere il bastone, la sequenza nel suo insieme è riuscita.  
 
 > **Random Sequence**
@@ -325,14 +294,9 @@ Un selector è un task di diramazione che esegue a turno ciascuno dei suoi compo
 **I selettori sono usati per scegliere la prima azione che ha successo in una serie di azioni possibili**. 
 
 **Esempio:** Le azioni che il cane fa quando non è impegnato col padrone sono quelle tipiche di un cane in libertà: fa pipì, scorrazza qua e là correndo e camminando, e quando è stanco si siede o si sdraia. Questo comportamento può essere modellato componendo i task menzionati con un selettore 
-```mermaid
-graph TD
-   ActOnYourOnwn[Act On Your Own<br/>type: selector]-->Piss[Piss]
-   ActOnYourOnwn-->WanderRunning[Wander Running]
-   ActOnYourOnwn-->WanderWalking[Wander Walking]
-   ActOnYourOnwn-->LieDown[Lie Down]
-   ActOnYourOnwn-->Sit[Sit]
-```
+
+![Selector Task](graphs/selector.png)
+
 Il selettore processa i figli nell'ordine e proverà a far fare la pipì al cane. Se ciò fallisce (magari per mancanza di un albero nelle vicinanze), proverà a far correre il cane. Se questo ha esito positivo, si interromperà tornando successo . Se invece fallisce (magari perché il cane corre solo sull'erba ed ora è sull'asfalto) proverà a camminare e così via.
 In realtà la demo non è così sofisticata e non presenta controlli tipo la vicinanza dell'albero, la superficie sotto le zampe, ecc... Si può ottenere un effetto comunque realistico semplificando le cose e usando un random selector.
 > **Random Selector**
@@ -345,47 +309,24 @@ Il parallel esegue continuamente i suoi figli fino a che un task non ritorna uno
 
 Ecco alcuni usi tipici di questo task:
 - **Azioni non conflittuali**: usabile per insiemi di azioni che possono avvenire contemporaneamente. Ad esempio, un NPC particolarmente abile che gioca a [Nerf](https://it.wikipedia.org/wiki/Nerf), grazie al task parallel può rotolare con una capriola al riparo mentre urla qualcosa e ricarica di vernice l'arma.
-	```mermaid
-	graph TD
-	   RollBehindCoverPoint[Roll Behind Cover Point<br/>type: parallel<br/>policy: sequence]-->RollAnimation[Roll Animation]
-	   RollBehindCoverPoint-->ShoutSomething[Shout Something]
-	   RollBehindCoverPoint-->LoadWeapon[Load Weapon]
-	```
+	![Parallel Task 1](graphs/parallel-1.png)
 - **Verifica delle condizioni**: un uso molto comune del task parallel è verificare continuamente se determinate condizioni sono soddisfatte durante l'esecuzione di un'azione. Ad esempio, si può far reagire l'NPC ad un evento mentre dorme o girovaga. Allo stesso modo il nostro cane, che nell'esempio del sequence nel task `Wait For Stick Thrown` incita il padrone in attesa che gli lanci il bastone, può reagire al lancio. Basta sostituire il task foglia menzionato con il BT seguente: 
-	```mermaid
-	graph TD
-	   WaitForStickThrow[Wait For Stick Throw<br/>type: parallel<br/>policy: selector]-->StickThown[Stick Thown?]
-	   WaitForStickThrow-->Wait
-	   WaitForStickThrow-->BeContinuouslyOverexcited[Be Continuously<br/>Overexcited]
-	```
+	![Parallel Task 2](graphs/parallel-2.png)
+
 	Questo caso d'uso è importante negli alberi di comportamento perché da solo **copre buona parte delle funzionalità di una macchina a stati**, in particolare la capacità di cambiare azione quando si verificano eventi importanti e sorgono nuove opportunità. Invece di eventi che innescano transizioni tra stati, possiamo usare sotto-alberi come stati e farli funzionare in parallelo con una serie di condizioni. Nel caso di una macchina a stati, quando viene soddisfatta la condizione, viene attivata la transizione. In un BT il comportamento viene eseguito fintanto che la condizione ritorna un risultato che ne determina l'uscita dipendentemente dalla policy.
 - **Comportamento di gruppo**: si può usare il task parallel per controllare il comportamento di un gruppo di personaggi.
 <img align="right" hspace="20" vspace="20" width="160"
 src="images/soccer-player.png"/> **Esempio:** Consideriamo una **squadra di di calcio**. Ciascun giocatore ha nel proprio BT sia le azioni individuali (ad esempio `Calcia`, `Corri`, `Cammina` e `Contrasta`) che le azioni di squadra, contenute in task paralleli all'interno di un selettore di livello superiore.
 Un  attaccante avrà azioni di squadra tipo `Avanza col portatore di palla`, `Frapponiti tra difensore e portatore di palla`, `Occupa zona libera in area`, `Mira a un compagno`, `Mira in porta`, ecc... Se uno dei membri del team non può svolgere il proprio ruolo nella strategia, il parallel tornerà un failure e il selettore dovrà scegliere un'altra opzione, magari determinando un cambio di strategia (schema).
-	```mermaid
-	graph TD
-	   Attacker[Attacker<br/>type: parallel<br/>policy: sequence]-->IndividualActions[Individual Actions<br/>type: selector]
-	   Attacker-->TeamActions[Team Actions<br/>type: selector]
-	   IndividualActions-->Walk
-	   IndividualActions-->Run
-	   IndividualActions-->Kick
-	   IndividualActions-->Tackle
-	   TeamActions-->MoveForwardWithBallCarrier[Move Forward<br/>With Ball Carrier]
-	   TeamActions-->InterposeBetweenDefenderAndBallCarrier[Interpose Between<br/>Defender and<br/>Ball Carrier]
-	   TeamActions-->OccupyFreeZoneInPenaltyArea[Occupy Free<br/>Zone In<br/>Penalty Area]
-	   TeamActions-->AimAtAPlaymate[Aim At A<br/>Playmate]
-	   TeamActions-->AimAtTheGoal[Aim At<br/>The Goal]
-	```
+	![Parallel Task 3](graphs/parallel-3.png)
 
 #### Decorator
 Il nome decorator deriva dal [decorator pattern](https://it.wikipedia.org/wiki/Decorator) della programmazione orientata agli oggetti (OOP). Questo **design pattern** consiste in una classe che avvolge (wrap, in inglese) un'altra classe, modificandone il comportamento. Il decoratore ha la stessa interfaccia della classe che avvolge, quindi il resto del software non ha bisogno di sapere se si tratta della classe originale o di un suo decoratore.
 
 Nel contesto dei BT, un decoratore è un task che ha **un singolo task figlio di cui modifica il comportamento**.
-```mermaid
-graph TD
-   Decorator-->WrappedTask[Wrapped Task]
-```
+
+![Decorator Task](graphs/decorator.png)
+
 Tipicamente, il formalismo BT fornisce una serie di utili **decoratori nativi**, tra cui:
 - **AlwaysFail**  fallisce sempre, sia che i figlio fallisca o abbia successo.
 - **AlwaysSucceed** ha sempre successo, sia che i figlio fallisca o abbia successo.

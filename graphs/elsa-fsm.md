@@ -1,0 +1,9 @@
+	```mermaid
+	graph LR
+	   CLEAN((CLEAN))-->BATHROOM((BATHROOM))
+	   BATHROOM((BATHROOM))-->COOK((COOK))
+	   COOK-->BATHROOM
+	   COOK-->CLEAN
+	   CLEAN-->COOK
+	   BATHROOM-->CLEAN
+	```
